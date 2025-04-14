@@ -2,7 +2,6 @@ package com.todoapp;
 
 import java.util.*;
 import java.time.LocalDate;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -12,12 +11,17 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-    private List<Task> tasks;
+    private TaskManager taskManager;
     private Task taskBeingEdited = null; // Track the task being edited
 
     @Override
     public void start(Stage primaryStage) {
-        tasks = StorageManager.loadTasks(); // Load tasks
+        LoginScreen loginScreen = new LoginScreen();
+        loginScreen.show(primaryStage, user -> launchMainApp(primaryStage, user));
+    }
+
+    public void launchMainApp(Stage primaryStage, User user) {
+        taskManager = new TaskManager(user); // Load tasks specific to the logged-in user
 
         ListView<Task> taskListView = new ListView<>();
 
@@ -41,17 +45,24 @@ public class Main extends Application {
         Button deleteButton = new Button("Delete Task");
         Button editButton = new Button("Edit Task");
         Button viewDetailsButton = new Button("View Details");
+        Button logoutButton = new Button("Logout");
 
+
+        // === Logout ===
+        logoutButton.setOnAction(e -> {
+            taskManager.saveTasks();         // Save any task changes
+            start(primaryStage);             // Return to login screen
+        });
+        
         // === Sorting Controls ===
         ChoiceBox<String> sortChoiceBox = new ChoiceBox<>();
         sortChoiceBox.getItems().addAll("Due Date", "Priority", "Priority & Due Date", "Completion Status");
         sortChoiceBox.setValue("Due Date");
 
         CheckBox reverseSortBox = new CheckBox("Reverse Order");
-
         Button applySortButton = new Button("Sort Tasks");
 
-        // === Add or Save Changes Button Action ===
+        // === Add or Save Task ===
         addButton.setOnAction(e -> {
             String name = nameField.getText();
             String description = descriptionArea.getText();
@@ -69,15 +80,15 @@ public class Main extends Application {
 
             if (taskBeingEdited != null) {
                 taskBeingEdited.editTask(name, description, dueDateConverted, priority, category);
+                taskBeingEdited = null;
+                addButton.setText("Add Task");
                 System.out.println("✅ Task updated!");
-                taskBeingEdited = null; // Clear editing mode
-                addButton.setText("Add Task"); // Reset button text when done editing
             } else {
                 Task task = new Task(name, description, dueDateConverted, priority, category);
-                tasks.add(task);
+                taskManager.addTask(task);
             }
 
-            StorageManager.saveTasks(tasks);
+            taskManager.saveTasks();
             refreshTaskList(taskListView);
 
             nameField.clear();
@@ -87,7 +98,6 @@ public class Main extends Application {
             priorityChoiceBox.setValue(null);
         });
 
-        // === Edit Button Action ===
         editButton.setOnAction(e -> {
             Task selectedTask = taskListView.getSelectionModel().getSelectedItem();
             if (selectedTask != null) {
@@ -97,11 +107,10 @@ public class Main extends Application {
                 categoryChoiceBox.setValue(selectedTask.getCategory());
                 priorityChoiceBox.setValue(getPriorityLabel(selectedTask.getPriority()));
                 taskBeingEdited = selectedTask;
-                addButton.setText("Save Changes"); // Set button text to Save Changes when editing
+                addButton.setText("Save Changes");
             }
         });
 
-        // === View Details Button Action ===
         viewDetailsButton.setOnAction(e -> {
             Task selectedTask = taskListView.getSelectionModel().getSelectedItem();
             if (selectedTask != null) {
@@ -121,61 +130,75 @@ public class Main extends Application {
             }
         });
 
-        // === Toggle Completed on Click ===
         taskListView.setOnMouseClicked(e -> {
             Task selectedTask = taskListView.getSelectionModel().getSelectedItem();
             if (selectedTask != null) {
-                selectedTask.toggleCompleted();
-                StorageManager.saveTasks(tasks);
+                taskManager.toggleTaskCompleted(selectedTask);
                 refreshTaskList(taskListView);
             }
         });
 
-        // === Delete Selected Task ===
         deleteButton.setOnAction(e -> {
             Task selectedTask = taskListView.getSelectionModel().getSelectedItem();
             if (selectedTask != null) {
-                tasks.remove(selectedTask);
-                StorageManager.saveTasks(tasks);
+                taskManager.deleteTask(selectedTask);
+                taskManager.saveTasks();
                 refreshTaskList(taskListView);
             }
         });
 
-        // === Apply Sorting ===
         applySortButton.setOnAction(e -> {
             String selectedSort = sortChoiceBox.getValue();
-            Comparator<Task> comparator = switch (selectedSort) {
-                case "Priority" -> Comparator.comparingInt(Task::getPriority);
-                case "Priority & Due Date" -> Comparator.comparingInt(Task::getPriority)
-                        .thenComparing(Task::getDueDate, Comparator.nullsLast(Date::compareTo));
-                case "Completion Status" -> Comparator.comparing(Task::isCompleted)
-                        .thenComparing(Task::getDueDate, Comparator.nullsLast(Date::compareTo));
-                default -> Comparator.comparing(Task::getDueDate, Comparator.nullsLast(Date::compareTo));
-            };
-            if (reverseSortBox.isSelected()) comparator = comparator.reversed();
-            tasks.sort(comparator);
-            refreshTaskList(taskListView);
+            List<Task> sortedTasks = taskManager.getSortedTasks(selectedSort, reverseSortBox.isSelected());
+            taskListView.getItems().setAll(sortedTasks);
         });
 
         VBox layout = new VBox(10);
         HBox buttonRow = new HBox(10, deleteButton, editButton, viewDetailsButton);
         HBox sortRow = new HBox(10, new Label("Sort By:"), sortChoiceBox, reverseSortBox, applySortButton);
+        HBox topRow = new HBox(10, logoutButton);
 
+
+        layout.getChildren().add(topRow);
+        
         layout.getChildren().addAll(
-                nameField, descriptionArea, dueDatePicker, categoryChoiceBox, priorityChoiceBox, addButton, buttonRow, sortRow, taskListView
+                nameField, descriptionArea, dueDatePicker, categoryChoiceBox,
+                priorityChoiceBox, addButton, buttonRow, sortRow, taskListView
         );
 
         refreshTaskList(taskListView);
 
         Scene scene = new Scene(layout, 500, 600);
-        primaryStage.setTitle("To-Do List Manager");
+        primaryStage.setTitle("To-Do List Manager - " + user.getUsername());
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private int mapPriority(String priorityStr) { return switch (priorityStr) { case "High" -> 1; case "Medium" -> 2; case "Low" -> 3; default -> 3; }; }
-    private String getPriorityLabel(int priority) { return switch (priority) { case 1 -> "High"; case 2 -> "Medium"; case 3 -> "Low"; default -> "Low"; }; }
-    private void refreshTaskList(ListView<Task> listView) { listView.getItems().setAll(tasks); if (!listView.getItems().isEmpty() && listView.getSelectionModel().getSelectedItem() == null) listView.getSelectionModel().selectFirst(); }
+    private int mapPriority(String priorityStr) {
+        return switch (priorityStr) {
+            case "High" -> 1;
+            case "Medium" -> 2;
+            case "Low" -> 3;
+            default -> 3;
+        };
+    }
 
-    public static void main(String[] args) { launch(args); }
+    private String getPriorityLabel(int priority) {
+        return switch (priority) {
+            case 1 -> "High";
+            case 2 -> "Medium";
+            case 3 -> "Low";
+            default -> "Low";
+        };
+    }
+
+    private void refreshTaskList(ListView<Task> listView) {
+        listView.getItems().setAll(taskManager.getTasks());
+        if (!listView.getItems().isEmpty() && listView.getSelectionModel().getSelectedItem() == null)
+            listView.getSelectionModel().selectFirst();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

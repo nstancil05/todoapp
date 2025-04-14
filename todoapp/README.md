@@ -1,4 +1,3 @@
-
 # To-Do List Manager
 
 ## Overview
@@ -12,49 +11,41 @@ A **JavaFX-based To-Do List Manager** that allows users to:
 
 ---
 
-## ✅ Requirements
+## Requirements
 - **Java 17 or later**
 - **Maven** (Project is Maven-managed)
 - **JavaFX SDK** (if running manually outside packaged JAR)
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
-### 1. Ensure you have the full project source code:
-Make sure you have **all the source files**, including:
-- `pom.xml` (Maven configuration)
-- `src/` directory containing all Java classes (like `Main.java`, `Task.java`, `StorageManager.java`, etc.)
+### 1. Ensure you have the full project source code
 
 ---
 
-### 2. Open in IDE or terminal:
-- Open the project in **IntelliJ IDEA**, **Eclipse**, **VS Code**, or any IDE that supports Maven.
-- **OR** navigate to the project root directory via terminal/command line.
+### 2. Open in VSCode
 
 ---
 
 ### 3. Compile the project:
-```bash
-mvn clean compile
-```
+While navigated inside of the "todoapp" directory, run the following command to compile:
+    mvn compile
 
 ---
 
 ### 4. Run the application using Maven:
-```bash
-mvn exec:java -Dexec.mainClass="com.todoapp.Main"
-```
+    mvn exec:java
 
 ---
 
 ## 💾 Data Storage
-- All tasks are saved in a `tasks.json` file located in the **current working directory** where the app is launched.
+- All tasks are saved in a `tasks.json` file located in the **data folder**
 - Tasks persist between application runs — no manual save is needed!
 
 ---
 
-## ✅ Test Cases for To-Do List Manager
+## Test Cases for To-Do List Manager
 
 ### Test Case 1: Add New Task
 **Steps:**
@@ -132,3 +123,4 @@ mvn exec:java -Dexec.mainClass="com.todoapp.Main"
 - The **edit mode** will show **"Save Changes"** instead of "Add Task" when editing an existing task.
 - Clicking a task **toggles** its completion status.
 - Sorting supports **reversing order** dynamically.
+- Use **arrow keys** to navigate through the task list.
