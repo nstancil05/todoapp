@@ -1,0 +1,83 @@
+.root {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #f0f0f0;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.button {
+    -fx-background-color: #444;
+    -fx-text-fill: white;
+}
+.button:hover {
+    -fx-background-color: #555;
+}
+
+.text-field, .choice-box, .date-picker {
+    -fx-background-color: #3a3a3a;
+    -fx-border-color: #555;
+    -fx-text-fill: #f0f0f0;
+}
+
+.text-area {
+    -fx-background-color: #3a3a3a;
+    -fx-border-color: #555;
+    -fx-text-fill: #f0f0f0;
+    -fx-text-inner-color: #f0f0f0;
+}
+
+.text-area .content {
+    -fx-background-color: #3a3a3a;
+}
+
+.text-area .text {
+    -fx-fill: #f0f0f0;
+}
+
+.label {
+    -fx-text-fill: #f0f0f0;
+}
+
+.check-box {
+    -fx-text-fill: #f0f0f0;
+}
+.check-box .box {
+    -fx-background-color: #3a3a3a;
+    -fx-border-color: #999;
+}
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.list-view {
+    -fx-control-inner-background: #2a2a2a;
+    -fx-cell-hover-color: #3a3a3a;
+    -fx-text-fill: #f0f0f0;
+}
+.list-cell {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #f0f0f0;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: #3a3a3a;
+}
+.date-picker .arrow-button .arrow {
+    -fx-background-color: white;
+}
+
+.choice-box .label {
+    -fx-text-fill: #f0f0f0;
+}
+.choice-box .arrow {
+    -fx-background-color: white;
+}
+
+.choice-box .menu-item{
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #f0f0f0;
+}
+
+.choice-box .menu-item:focused {
+    -fx-background-color: #555;
+    -fx-text-fill: white;
+}

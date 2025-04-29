@@ -47,13 +47,15 @@ public class Main extends Application {
         Button viewDetailsButton = new Button("View Details");
         Button logoutButton = new Button("Logout");
 
-
         // === Logout ===
         logoutButton.setOnAction(e -> {
             taskManager.saveTasks();         // Save any task changes
             start(primaryStage);             // Return to login screen
         });
-        
+
+        // === Theme Toggle ===
+        CheckBox darkModeToggle = new CheckBox("🌙 Dark Mode");
+
         // === Sorting Controls ===
         ChoiceBox<String> sortChoiceBox = new ChoiceBox<>();
         sortChoiceBox.getItems().addAll("Due Date", "Priority", "Priority & Due Date", "Completion Status");
@@ -156,11 +158,9 @@ public class Main extends Application {
         VBox layout = new VBox(10);
         HBox buttonRow = new HBox(10, deleteButton, editButton, viewDetailsButton);
         HBox sortRow = new HBox(10, new Label("Sort By:"), sortChoiceBox, reverseSortBox, applySortButton);
-        HBox topRow = new HBox(10, logoutButton);
-
+        HBox topRow = new HBox(10, logoutButton, darkModeToggle);
 
         layout.getChildren().add(topRow);
-        
         layout.getChildren().addAll(
                 nameField, descriptionArea, dueDatePicker, categoryChoiceBox,
                 priorityChoiceBox, addButton, buttonRow, sortRow, taskListView
@@ -169,6 +169,16 @@ public class Main extends Application {
         refreshTaskList(taskListView);
 
         Scene scene = new Scene(layout, 500, 600);
+
+        // Apply default theme and include toggle
+        scene.getStylesheets().add(getClass().getResource("/light-theme.css").toExternalForm());
+        darkModeToggle.setOnAction(e -> {
+            scene.getStylesheets().clear();
+            String theme = darkModeToggle.isSelected() ? "/dark-theme.css" : "/light-theme.css";
+            scene.getStylesheets().add(getClass().getResource(theme).toExternalForm());
+        });
+
+
         primaryStage.setTitle("To-Do List Manager - " + user.getUsername());
         primaryStage.setScene(scene);
         primaryStage.show();
